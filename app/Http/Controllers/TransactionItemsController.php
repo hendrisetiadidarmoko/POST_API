@@ -7,6 +7,8 @@ use App\Models\TransactionItems;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 class TransactionItemsController extends Controller
 {
+
+    //menampilkan item trensaksi
     public function index(){
         $sales = TransactionItems::latest()->get();
         return response()->json([
@@ -15,6 +17,7 @@ class TransactionItemsController extends Controller
         ], 200);
     }
 
+    //menampilkan item trensaksi menurut id
     public function show($id){
         try {
             $transaction = TransactionItems::findOrFail($id);

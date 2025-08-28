@@ -9,9 +9,11 @@ use App\Models\TransactionItems;
 use Illuminate\Support\Facades\DB;
 use Mockery\Expectation;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class SalesTransactionController extends Controller
 {
+    //menampilkan sales transaction
     public function index(){
         $sales = SalesTransaction::latest()->get();
         return response()->json([
@@ -20,6 +22,7 @@ class SalesTransactionController extends Controller
         ], 200);
     }
 
+    //menampilkan menurut id
     public function show($id){
         try {
             $sales = SalesTransaction::findOrFail($id);
@@ -38,6 +41,7 @@ class SalesTransactionController extends Controller
         }
     }
 
+    //menampilkan transaksinya
     public function showTransaction(){
         try {
             $transaction = SalesTransaction::with('transactionItems.product')->get();
@@ -56,6 +60,7 @@ class SalesTransactionController extends Controller
         }
     }
 
+    //menampiilkan transaksi menurut id
     public function showTransactionId($id){
         try {
             $transaction = SalesTransaction::with('transactionItems.product')->findOrFail($id);
@@ -74,14 +79,22 @@ class SalesTransactionController extends Controller
         }
     }
 
+    //membuat transaksi
     public function store(Request $request){
-        $validated = $request->validate([
-            'cashier_name' => 'required|max:50',
-            'payment' => 'required|in:cash,card,wallet',
-            'product' => 'required|array',
-            'product.*.id' => 'required|numeric',
-            'product.*.quantity' => 'required|numeric',
-        ]);
+        try {
+            $validated = $request->validate([
+                'cashier_name' => 'required|max:50',
+                'payment' => 'required|in:cash,card,wallet',
+                'product' => 'required|array',
+                'product.*.id' => 'required|numeric',
+                'product.*.quantity' => 'required|numeric',
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        }
         DB::beginTransaction();
         try{
             $sale = SalesTransaction::create([
